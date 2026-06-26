@@ -53,16 +53,10 @@ meditrack/
 ---
 
 ## How to Run
-
-**Option 1 — Open directly**
 1. Download or clone this repository
 2. Open `index.html` in any modern browser (Chrome, Firefox, Edge, Safari)
 3. No server or internet required (charts need CDN)
 
-**Option 2 — GitHub Pages**
-1. Push to a GitHub repository
-2. Go to Settings → Pages → Source: Deploy from branch → main / root
-3. Access via `https://username.github.io/repo-name`
 
 ---
 
