@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediTrack — Medication Reminder</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.34.0/fonts/tabler-icons.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="nav-logo"><i class="ti ti-heart-rate"></i></div>
+    <span class="nav-title">MediTrack</span>
+  </div>
+  <div class="nav-tabs" role="tablist">
+    <button class="tab active" data-page="dashboard"  onclick="showPage('dashboard',this)"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
+    <button class="tab"        data-page="medications" onclick="showPage('medications',this)"><i class="ti ti-pill"></i><span>Medications</span></button>
+    <button class="tab"        data-page="health"      onclick="showPage('health',this)"><i class="ti ti-activity"></i><span>Health Log</span></button>
+    <button class="tab"        data-page="reports"     onclick="showPage('reports',this)"><i class="ti ti-chart-bar"></i><span>Reports</span></button>
+  </div>
+  <span class="sdg-badge">🌍 SDG 3</span>
+</nav>
+
+<div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+<main class="main-content">
+
+  <!-- DASHBOARD -->
+  <section id="page-dashboard" class="page active">
+    <div class="page-header">
+      <div>
+        <h1 id="greeting-text" class="greeting"></h1>
+        <p id="today-date-label" class="subtext"></p>
+      </div>
+      <span class="streak-badge" id="streak-badge"><i class="ti ti-flame"></i> — streak</span>
+    </div>
+
+    <div class="grid grid-4">
+      <div class="metric-card"><div class="metric-label">Today's meds</div><div class="metric-val" id="metric-meds">0/0</div></div>
+      <div class="metric-card"><div class="metric-label">Water intake</div><div class="metric-val" id="metric-water">0</div><div class="metric-sub">glasses of 8</div></div>
+      <div class="metric-card"><div class="metric-label">Adherence</div><div class="metric-val" id="metric-adherence">—</div><div class="metric-sub">this week</div></div>
+      <div class="metric-card"><div class="metric-label">Streak</div><div class="metric-val" id="metric-streak">0</div><div class="metric-sub">days</div></div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card"><h2 class="card-title">Today's schedule</h2><div id="today-schedule"></div></div>
+      <div class="card">
+        <h2 class="card-title">Water tracker</h2>
+        <p class="hint-text">Tap a cup to log intake</p>
+        <div class="water-cups" id="water-cups"></div>
+        <div class="hint-text" style="margin-top:6px">Goal: 8 glasses (2 L)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEDICATIONS -->
+  <section id="page-medications" class="page" hidden>
+    <div class="page-header">
+      <h1 class="page-title">My medications</h1>
+      <button class="btn btn-primary" onclick="toggleAddPanel()" id="add-btn"><i class="ti ti-plus"></i> Add</button>
+    </div>
+
+    <div class="card add-panel" id="add-panel" hidden>
+      <div class="panel-header">
+        <h2 class="card-title">New medication</h2>
+        <button class="btn btn-ghost icon-btn" onclick="toggleAddPanel()"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group form-full"><label class="form-label">Name *</label><input id="f-name" class="form-input" placeholder="e.g. Metformin 500mg" /></div>
+        <div class="form-group"><label class="form-label">Dosage *</label><input id="f-dose" class="form-input" placeholder="1 tablet" /></div>
+        <div class="form-group"><label class="form-label">Frequency</label>
+          <select id="f-freq" class="form-input"><option>Once daily</option><option>Twice daily</option><option>Three times daily</option><option>Weekly</option><option>As needed</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Time</label><input type="time" id="f-time" class="form-input" value="08:00" /></div>
+        <div class="form-group"><label class="form-label">With food?</label>
+          <select id="f-food" class="form-input"><option>With food</option><option>Without food</option><option>Either way</option></select>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="addMed()"><i class="ti ti-device-floppy"></i> Save</button>
+    </div>
+
+    <div class="card"><h2 class="card-title">Active medications</h2><div id="med-list"></div></div>
+  </section>
+
+  <!-- HEALTH LOG -->
+  <section id="page-health" class="page" hidden>
+    <div class="page-header"><h1 class="page-title">Health log</h1></div>
+    <div class="grid grid-2">
+      <div class="card">
+        <h2 class="card-title">Log vitals</h2>
+        <div class="form-grid">
+          <div class="form-group form-full"><label class="form-label">Date</label><input type="date" id="log-date" class="form-input" /></div>
+          <div class="form-group"><label class="form-label">Systolic BP</label><input type="number" id="log-sys" class="form-input" placeholder="120" /></div>
+          <div class="form-group"><label class="form-label">Diastolic BP</label><input type="number" id="log-dia" class="form-input" placeholder="80" /></div>
+          <div class="form-group"><label class="form-label">Glucose (mg/dL)</label><input type="number" id="log-glucose" class="form-input" placeholder="100" /></div>
+          <div class="form-group"><label class="form-label">Weight (kg)</label><input type="number" id="log-weight" class="form-input" placeholder="65" step="0.1" /></div>
+          <div class="form-group form-full">
+            <label class="form-label">Mood</label>
+            <div class="mood-btns" id="mood-btns">
+              <button class="mood-btn" onclick="setMood(this,'😊 Great')">😊</button>
+              <button class="mood-btn" onclick="setMood(this,'😐 Okay')">😐</button>
+              <button class="mood-btn" onclick="setMood(this,'😟 Low')">😟</button>
+              <button class="mood-btn" onclick="setMood(this,'🤒 Unwell')">🤒</button>
+            </div>
+          </div>
+          <div class="form-group form-full"><label class="form-label">Notes</label><textarea id="log-notes" class="form-input" rows="2" placeholder="Symptoms, side effects…"></textarea></div>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="saveLog()"><i class="ti ti-device-floppy"></i> Save log</button>
+      </div>
+      <div class="card"><h2 class="card-title">Recent entries</h2><div id="health-entries"></div></div>
+    </div>
+  </section>
+
+  <!-- REPORTS -->
+  <section id="page-reports" class="page" hidden>
+    <div class="page-header"><h1 class="page-title">Reports</h1></div>
+    <div class="grid grid-2">
+      <div class="card"><h2 class="card-title">Monthly adherence</h2><canvas id="adherence-chart" height="160"></canvas></div>
+      <div class="card"><h2 class="card-title">Blood pressure trend</h2><canvas id="bp-chart" height="160"></canvas></div>
+    </div>
+    <div class="alert alert-blue" style="margin-top:0.75rem"><i class="ti ti-info-circle"></i><div>Charts reflect logged health entries. Add more entries in the Health Log tab to see richer trends.</div></div>
+  </section>
+
+</main>
+
+<footer class="footer">MediTrack © 2026 · SDG 3: Good Health &amp; Well-Being · Reminder tool only — not medical advice.</footer>
+</body>
+</html>
